@@ -95,6 +95,35 @@ function neighbours(l::lattice, i::Int64, j::Int64)
     return [l(i-1,j), l(i,j+1), l(i+1,j), l(i,j-1)]
 end
 
+function neighbour_coords(l::lattice, i::Int64, j::Int64)
+    coords = []
+    if i != 1
+        push!(coords, (i-1,j))
+    elseif l.boundaries["upper_boundary"] == "periodic"
+        push!(coords, (size(l.state,1),j))
+    end
+
+    if j != size(l.state,2)
+        push!(coords, (i,j+1))
+    elseif l.boundaries["right_boundary"] == "periodic"
+        push!(coords, (i,1))
+    end
+    
+    if i != size(l.state,1)
+        push!(coords, (i+1,j))
+    elseif l.boundaries["lower_boundary"] == "periodic"
+        push!(coords, (1,j))
+    end
+
+    if j != 1
+        push!(coords, (i,j-1))
+    elseif l.boundaries["left_boundary"] == "periodic"
+        push!(coords, (i,size(l.state,2)))
+    end
+
+    return coords
+end
+
 
 function update_lattice!(l::lattice, x_coord::Int64, y_coord::Int64, new_state::Int64)
     x_coord == 0 && (x_coord = size(l.state,1))

@@ -17,4 +17,6 @@ l = lattice(lattice_size=(2, 2), initialization="empty", upper_boundary = "perio
     @test neighbours(l,2,1) == [2,0,2,1]
     @test loc_energy(l,2,1,epsilon=1.0) == 1
     @test loc_energy(l,1,1,epsilon=1.0) == 3
+    @test neighbour_coords(l,1,1) == [(2,1),(1,2),(2,1)]
+    @test neighbour_coords(l,2,1) == [(1,1),(2,2),(1,1)]
 end
