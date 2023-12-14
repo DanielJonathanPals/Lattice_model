@@ -1,6 +1,7 @@
 struct MutableBinaryHeapNode
     time::Float64
     handle::Int
+    trans_reate::Float64
 end
 
 
@@ -126,13 +127,13 @@ function Base.show(io::IO, h::MutableBinaryHeap)
 end
 
 
-function update!(h::MutableBinaryHeap, handle::Int, t_new) 
+function update!(h::MutableBinaryHeap, handle::Int64, t_new::Float64, new_rate::Float64) 
     nodes = h.nodes
     nodemap = h.node_map
 
     nd_id = nodemap[handle]
     t0 = nodes[nd_id].time
-    nodes[nd_id] = MutableBinaryHeapNode(t_new, handle)
+    nodes[nd_id] = MutableBinaryHeapNode(t_new, handle, new_rate)
     if t_new < t0
         _heap_bubble_up!(nodes, nodemap, nd_id)
     else

@@ -1,6 +1,6 @@
 using Test
 
-include("../src/Next_reaction_model.jl")
+include("../src/Next_reaction_methods.jl")
 
 Random.seed!(1234)
 l = lattice(lattice_size=(2, 2), initialization="empty", upper_boundary = "periodic", lower_boundary = "periodic", left_boundary = "bounding", right_boundary = "empty")
@@ -10,4 +10,6 @@ update_lattice!(l, 2,1,1)
 
 @testset "lattice" begin
     init_nodes(l, params)
+    init_heap(l, params)
+    init_dependency_graph(l)
 end

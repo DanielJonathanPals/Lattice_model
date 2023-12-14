@@ -95,33 +95,58 @@ function neighbours(l::lattice, i::Int64, j::Int64)
     return [l(i-1,j), l(i,j+1), l(i+1,j), l(i,j-1)]
 end
 
+
+# returns true if the lattice site at row i, column j has a neighbour in the specified direction and returns the coordinates of that neighbour
+function has_neighbour(l::lattice, i::Int64, j::Int64, rel_pos::String = "above")
+    if rel_pos == "above"
+        if i != 1
+            return true, (i-1,j)
+        elseif l.boundaries["upper_boundary"] == "periodic"
+            return true, (size(l.state,1),j)
+        else 
+            return false, (0,0)
+        end
+
+    elseif rel_pos == "right"
+        if j != size(l.state,2)
+            return true, (i,j+1)
+        elseif l.boundaries["right_boundary"] == "periodic"
+            return true, (i,1)
+        else 
+            return false, (0,0)
+        end
+
+    elseif rel_pos == "lower"
+        if i != size(l.state,1)
+            return true, (i+1,j)
+        elseif l.boundaries["lower_boundary"] == "periodic"
+            return true, (1,j)
+        else 
+            return false, (0,0)
+        end
+
+    elseif rel_pos == "left"
+        if j != 1
+            return true, (i,j-1)
+        elseif l.boundaries["left_boundary"] == "periodic"
+            return true, (i,size(l.state,2))
+        else 
+            return false, (0,0)
+        end
+    end
+end
+
+
+# returns the coordinates of the neighbours of the lattice site at row i, column j as an array of tuples [(upper neighbor), (right neighbor), (lower neighbor), (left neighbor)]
 function neighbour_coords(l::lattice, i::Int64, j::Int64)
-    coords = []
-    if i != 1
-        push!(coords, (i-1,j))
-    elseif l.boundaries["upper_boundary"] == "periodic"
-        push!(coords, (size(l.state,1),j))
+    has_neighbor = Vector{Bool}(undef, 4)
+    x_coords = Vector{Int64}(undef, 4)
+    y_coords = Vector{Int64}(undef, 4)
+    for (idx,rel_pos) in enumerate(["above", "right", "lower", "left"])
+        has_neighbor[idx], (x_coords[idx], y_coords[idx]) = has_neighbour(l, i, j, rel_pos)
     end
 
-    if j != size(l.state,2)
-        push!(coords, (i,j+1))
-    elseif l.boundaries["right_boundary"] == "periodic"
-        push!(coords, (i,1))
-    end
-    
-    if i != size(l.state,1)
-        push!(coords, (i+1,j))
-    elseif l.boundaries["lower_boundary"] == "periodic"
-        push!(coords, (1,j))
-    end
-
-    if j != 1
-        push!(coords, (i,j-1))
-    elseif l.boundaries["left_boundary"] == "periodic"
-        push!(coords, (i,size(l.state,2)))
-    end
-
-    return coords
+    return has_neighbor, x_coords, y_coords
 end
 
 
