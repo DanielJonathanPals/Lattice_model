@@ -1,7 +1,7 @@
 struct MutableBinaryHeapNode
     time::Float64
     handle::Int
-    trans_reate::Float64
+    trans_rate::Float64
 end
 
 
@@ -35,8 +35,8 @@ function _heap_bubble_up!(nodes::Vector{MutableBinaryHeapNode}, nodemap::Vector{
 
     if i != nd_id
         nodes[i] = nd
-        nodemap[nd.handle] = i
     end
+    nodemap[nd.handle] = i
 end
 
 

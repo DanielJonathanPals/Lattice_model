@@ -41,13 +41,16 @@ println("\nInitializing dependency graph...")
 
 dep_graph = init_dependency_graph(l)
 
+println("\nRunning simulation...")
+
 trans_count = 0
 t = 0
 times = Vector{Float64}(undef, simulation_params["max_transitions"])
 actions = Vector{Int64}(undef, simulation_params["max_transitions"])
 
 for i in 1:simulation_params["max_transitions"]
-    if t > simulation_params["t_max"]
+    global trans_count += 1
+    if i != 1 && times[i-1] > simulation_params["t_max"]
         break
     end
 
@@ -58,23 +61,37 @@ for i in 1:simulation_params["max_transitions"]
     act = handle_to_action(heap.nodes[1].handle, l)
     act(l)
 
-    dep_handles = dep_graph[top_handle]
-    old_rates = [heap.nodes[heap.node_map[handle]] for handle in dep_handles]
+    dep_handles = filter(!iszero,dep_graph[top_handle,:])
+    old_rates = [heap.nodes[heap.node_map[handle]].trans_rate for handle in dep_handles]
     new_rates = [get_trans_rate(handle, l, model_params; type_of_diffusion=simulation_params["type_of_diffusion"]) for handle in dep_handles]
 
     # update the drawn node
-    new_top_rate = get_trans_rate(handle, l, model_params; type_of_diffusion=simulation_params["type_of_diffusion"])
+    new_top_rate = get_trans_rate(top_handle, l, model_params; type_of_diffusion=simulation_params["type_of_diffusion"])
     t_new = t + randexp() / new_top_rate
     update!(heap, top_handle, t_new, new_top_rate)
 
     # update the dependent nodes
-    for (i,handle) in enumerate(dep_handles)
+    for (j,handle) in enumerate(dep_handles)
         if handle == 0 
             break
-        elseif handle =! top_handle
+        elseif handle != top_handle
             heap_idx = heap.node_map[handle]
-            t_new = old_rates[i]/new_rates[i] * (heap.nodes[heap_idx].time - t) + t
-            update!(heap, handle, t_new, new_rates[i])
+            t_new = old_rates[j]/new_rates[j] * (heap.nodes[heap_idx].time - t) + t
+            update!(heap, handle, t_new, new_rates[j])
         end
     end
+end
+
+println("\nSimulation finished. Saving data...")
+
+open("Data/" * simulation_params["name"] * "/transition_times.txt", "w") do io
+    writedlm(io, times[1:trans_count])
+end
+
+open("Data/" * simulation_params["name"] * "/action_handles.txt", "w") do io
+    writedlm(io, actions[1:trans_count])
+end
+
+open("Data/" * simulation_params["name"] * "/final_lattice_config_w_bound.txt", "w") do io
+    writedlm(io, l.state_with_boundaries)
 end
