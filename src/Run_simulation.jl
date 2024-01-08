@@ -5,7 +5,7 @@ using DelimitedFiles
 include("Next_reaction_methods.jl")
 include("unpack_ARGS.jl")
 
-
+ # args = ["15","20","empty","periodic","periodic","bounding","empty","-2.95","(df, dμ, u) -> exp(-df-dμ-u)","1.0","2.0","1.0","1.0","1e-4","100.0","1e6","reaction, diffusion","exclusion","test3"]
 lattice_params, model_params, simulation_params = unpack_ARGS(ARGS)
 l_size = lattice_params["lattice_size"]
 l_init = lattice_params["lattice_init"]
@@ -31,6 +31,10 @@ isdir("Data/" * simulation_params["name"]) || mkdir("Data/" * simulation_params[
 
 open("Data/" * simulation_params["name"] * "/init_lattice_config_w_bound.txt", "w") do io
     writedlm(io, l.state_with_boundaries)
+end
+
+open("Data/" * simulation_params["name"] * "/lattice_boundaries.txt", "w") do io
+    writedlm(io, l.boundaries)
 end
 
 println("\nInitializing heap...")
@@ -76,7 +80,11 @@ for i in 1:simulation_params["max_transitions"]
             break
         elseif handle != top_handle
             heap_idx = heap.node_map[handle]
-            t_new = old_rates[j]/new_rates[j] * (heap.nodes[heap_idx].time - t) + t
+            if old_rates[j] == 0.0
+                t_new = t + randexp() / new_rates[j]
+            else
+                t_new = old_rates[j]/new_rates[j] * (heap.nodes[heap_idx].time - t) + t
+            end
             update!(heap, handle, t_new, new_rates[j])
         end
     end
