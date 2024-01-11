@@ -1,5 +1,6 @@
 using Test
 
+include("../src/actions.jl")
 include("../src/Next_reaction_methods.jl")
 
 Random.seed!(1234)
@@ -8,7 +9,7 @@ params = Dict("epsilon" => -log(2.), "k_IB" => (df, dμ, u) -> exp(-df-dμ-u), "
 update_lattice!(l, 1,1,2)
 update_lattice!(l, 2,1,1)
 
-@testset "lattice" begin
+@testset "Next_reaction_model" begin
     init_nodes(l, params)
     init_heap(l, params)
     init_dependency_graph(l)

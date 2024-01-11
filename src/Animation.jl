@@ -7,22 +7,6 @@ using DelimitedFiles
 time_step = 10.
 t_max = 1000.0
 
-include("actions.jl")
-
-init_lattice = readdlm("Data/test/init_lattice_config_w_bound.txt")
-handles = Int64.(readdlm("Data/test/action_handles.txt"))
-final_lattice = readdlm("Data/test/final_lattice_config_w_bound.txt")
-boundaries = readdlm("Data/test/lattice_boundaries.txt")
-times = readdlm("Data/test/transition_times.txt")
-
-bounds = Dict()
-for i in 1:4
-    bounds[boundaries[i,1]] = boundaries[i,2]
-end
-
-l = lattice(init_lattice[2:end-1, 2:end-1], init_lattice, bounds)
-
-
 function plot_lattice(l::lattice,t::Float64)
     x_dim = size(l.state,1)
     y_dim = size(l.state,2)
@@ -46,20 +30,35 @@ function plot_lattice(l::lattice,t::Float64)
 end
 
 
-curr_step = 1
-anim = @animate for (i,t) in enumerate(0:time_step:t_max)
-    while times[curr_step] < t
-        act = handle_to_action(handles[curr_step], l)
-        act(l)
-        global curr_step += 1
+function animate(name_of_data::String, time_step::Float64; t_max::Float64 = 1000.0, fps::Int64 = 15)
+    init_lattice = readdlm("Data/$name_of_data/init_lattice_config_w_bound.txt")
+    handles = Int64.(readdlm("Data/$name_of_data/action_handles.txt"))
+    boundaries = readdlm("Data/$name_of_data/lattice_boundaries.txt")
+    times = readdlm("Data/$name_of_data/transition_times.txt")
+
+    bounds = Dict()
+    for i in 1:4
+        bounds[boundaries[i,1]] = boundaries[i,2]
     end
-    plot_lattice(l,t)
-    if (i-1) % 10 == 0
-        println("Progress: t = $t, t_max = $t_max")
+
+    l = lattice(init_lattice[2:end-1, 2:end-1], init_lattice, bounds)
+
+    curr_step = 1
+    anim = @animate for (i,t) in enumerate(0:time_step:t_max)
+        while times[curr_step] < t
+            act = handle_to_action(handles[curr_step], l)
+            act(l)
+            global curr_step += 1
+        end
+        plot_lattice(l,t)
+        if (i-1) % 10 == 0
+            println("Progress: t = $t, t_max = $t_max")
+        end
     end
+
+    gif(anim, "/scratch/d/Daniel.Pals/Masterthesis/Coding/Lattice_model/Animations/$name_of_data.gif", fps=fps)
 end
 
-gif(anim, "/scratch/d/Daniel.Pals/Masterthesis/Coding/Lattice_model/Animations/test2.gif", fps=15)
 
 
 
